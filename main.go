@@ -85,25 +85,17 @@ func _main(args []string) error {
 }
 
 func sortFiles(files []File) []File {
-	ret := []File{}
-
-	for _, f := range files {
-		for _, ff := range files {
-			if ff.Info.ModTime().Unix() >= f.Info.ModTime().Unix() {
-				o := ret
-				t := []File{}
-				t = append(t, ff)
-				for _, x := range o {
-					if x.Path != ff.Path {
-						t = append(t, x)
-					}
-				}
-				ret = t
+	for i := len(files); i > 0; i-- {
+		for j := 1; j < i; j++ {
+			if files[j - 1].Info.ModTime().Unix() > files[j].Info.ModTime().Unix() {
+				im := files[j]
+				files[j] = files[j - 1]
+				files[j - 1] = im
 			}
 		}
 	}
 
-	return ret
+	return files
 }
 
 func getFiles(basePath string) ([]File, error) {
