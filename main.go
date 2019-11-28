@@ -287,7 +287,7 @@ func (p PageContent)generate() error {
 	}
 
 	if len(p.Pages) >= 1 {
-		_, err = r.WriteString("---\n")
+		_, err = r.WriteString("\n---\n")
 		if err != nil {
 			return fmt.Errorf("latest title: %w", err)
 		}
