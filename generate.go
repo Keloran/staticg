@@ -96,9 +96,14 @@ func (p PageContent) generate() error {
 
 		_, err = r.WriteString(latest)
 		if err != nil {
-			return fmt.Errorf("write latest: %w", err)
+			return fmt.Errorf("latest: %w", err)
 		}
-	}
+	} else {
+	    _, err = r.WriteString("\n[Home](/)")
+	    if err != nil {
+	        return fmt.Errorf("home link: %w", err)
+        }
+    }
 
 	err = r.Close()
 	if err != nil {
