@@ -278,7 +278,9 @@ func (p PageContent)generate() error {
 
 	for i := 1; i < len(p.Pages); i++ {
 		f := p.Pages[i]
-		_, err = r.WriteString("* [" + f.Title + "](/" + f.Path + ")\n")
+		path := strings.Replace(f.Path, "md", "html", -1)
+
+		_, err = r.WriteString("* [" + f.Title + "](/" + path + ")\n")
 		if err != nil {
 			return fmt.Errorf("write item: %w", err)
 		}
