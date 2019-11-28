@@ -191,6 +191,10 @@ func (f File)getTitle() (string, error) {
 				endByte = i
 			}
 		}
+
+		if endByte != 0 && startByte != 0 {
+			break
+		}
 	}
 
 	if endByte == 0 {
