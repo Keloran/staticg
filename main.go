@@ -9,133 +9,106 @@ import (
 )
 
 type File struct {
-	Path string
-	Info os.FileInfo
+	Path  string
+	Info  os.FileInfo
 	Title string
 }
 
 type IndexContent struct {
-	Blog []File
+	Blog    []File
 	Current []File
-	Past []File
+	Past    []File
 }
 
 type PageContent struct {
-	Title string
+	Title    string
 	NewIndex string
-	Index string
-	Pages []File
+	Index    string
+	Pages    []File
 }
 
 func main() {
+	err := _main(os.Args[1:])
+	if err != nil {
+		fmt.Printf("failed: %v\n", err)
+		return
+	}
+}
+
+func _main(args []string) error {
+	root := "./"
+	if len(args) >= 1 {
+		if args[0] != "" {
+			root = args[0] + "/"
+		}
+	}
+
 	ic := IndexContent{}
 
-	pages, err := blogPages()
+	fmt.Printf("Create new item y/n ? ")
+	create, err := getResponse('\n')
+	if create[0] == 121 {
+		err := editor(root)
+		if err != nil {
+			return fmt.Errorf("editor err: %w", err)
+		}
+	}
 	if err != nil {
-		fmt.Printf("blog err: %v\n", err)
-		return
+		return fmt.Errorf("item question: %w", err)
+	}
+
+	pages, err := blogPages(root)
+	if err != nil {
+		return fmt.Errorf("blog err: %w", err)
 	}
 	ic.Blog = pages
 
-	pages, err = currentProjects()
+	pages, err = currentProjects(root)
 	if err != nil {
-		fmt.Printf("current projects: %v\n", err)
-		return
+		return fmt.Errorf("current projects: %w", err)
 	}
 	ic.Current = pages
 
-	pages, err = pastProjects()
+	pages, err = pastProjects(root)
 	if err != nil {
-		fmt.Printf("past projects: %v\n", err)
-		return
+		return fmt.Errorf("past projects: %w", err)
 	}
 	ic.Past = pages
 
 	err = ic.generate()
 	if err != nil {
-		fmt.Printf("generate index: %v\n", err)
-		return
+		return fmt.Errorf("generate index: %w", err)
 	}
 
 	fmt.Printf("all files created\n")
-	return
+	return nil
 }
 
-func blogPages() ([]File, error) {
-	files, err := getFiles("blog")
-	if err != nil {
-		return []File{}, fmt.Errorf("getFiles: %w", err)
-	} 
+func sortFiles(files []File) []File {
+	ret := []File{}
 
-	p := PageContent{
-		Title: "Blog",
-		NewIndex: "blog/newIndex.md",
-		Index: "blog/index.md",
-		Pages: files,
-	}
-	err = p.generate()
-	if err != nil {
-		return files, fmt.Errorf("generate template: %w", err)
-	}
-
-	if len(files) >= 5 {
-		return files[:4], nil
+	for _, f := range files {
+		for _, ff := range files {
+			if ff.Info.ModTime().Unix() >= f.Info.ModTime().Unix() {
+				o := ret
+				t := []File{}
+				t = append(t, ff)
+				for _, x := range o {
+					if x.Path != ff.Path {
+						t = append(t, x)
+					}
+				}
+				ret = t
+			}
+		}
 	}
 
-	return files, nil
-}
-
-func currentProjects() ([]File, error) {
-	files, err := getFiles("projects/current")
-	if err != nil {
-		return []File{}, fmt.Errorf("getFiles: %w", err)
-	}
-
-	p := PageContent{
-		Title: "Current Projects",
-		NewIndex: "projects/current/newIndex.md",
-		Index: "projects/current/index.md",
-		Pages: files,
-	}
-	err = p.generate()
-	if err != nil {
-		return files, fmt.Errorf("generate template: %w", err)
-	}
-
-	if len(files) >= 5 {
-		return files[:4], nil
-	}
-
-	return files, nil
-}
-
-func pastProjects() ([]File, error) {
-	files, err := getFiles("projects/past")
-	if err != nil {
-		return []File{}, fmt.Errorf("getFiles: %w", err)
-	}
-
-	p := PageContent{
-		Title: "Past Projects",
-		NewIndex: "projects/past/newIndex.md",
-		Index: "projects/past/index.md",
-		Pages: files,
-	}
-	err = p.generate()
-	if err != nil {
-		return files, fmt.Errorf("generate template: %w", err)
-	}
-
-	if len(files) >= 5 {
-		return files[:4], nil
-	}
-
-	return files, nil
+	return ret
 }
 
 func getFiles(basePath string) ([]File, error) {
 	files := []File{}
-	
+
 	root, err := os.Getwd()
 	if err != nil {
 		return files, fmt.Errorf("getwd: %w", err)
@@ -144,7 +117,7 @@ func getFiles(basePath string) ([]File, error) {
 		return files, fmt.Errorf("%s folder doesn't exist", basePath)
 	}
 
-	err = filepath.Walk(root + "/" + basePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(root+"/"+basePath, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(info.Name(), ".md") {
 			if info.Name() != "index.md" {
 				f := File{
@@ -170,7 +143,16 @@ func getFiles(basePath string) ([]File, error) {
 	return sortFiles(files), nil
 }
 
-func (f File)getTitle() (string, error) {
+func getLatest(f File) (string, error) {
+	dat, err := ioutil.ReadFile(f.Path)
+	if err != nil {
+		return "", fmt.Errorf("readfile: %w", err)
+	}
+
+	return string(dat), nil
+}
+
+func (f File) getTitle() (string, error) {
 	dat, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return "", fmt.Errorf("readfile: %w", err)
@@ -184,7 +166,7 @@ func (f File)getTitle() (string, error) {
 
 	for i, b := range dat {
 		if b == hashBytes[0] && dat[i+1] == hashBytes[1] {
-			startByte = i+2
+			startByte = i + 2
 		}
 		if b == newLine {
 			if endByte == 0 {
@@ -202,147 +184,4 @@ func (f File)getTitle() (string, error) {
 	}
 
 	return string(dat[startByte:endByte]), nil
-}
-
-func getLatest(f File) (string, error) {
-	dat, err := ioutil.ReadFile(f.Path)
-	if err != nil {
-		return "", fmt.Errorf("readfile: %w", err)
-	}
-
-	return string(dat), nil
-}
-
-func (ic IndexContent)generate() error {
-	r, err := os.Create("newIndex.md")
-	if err != nil {
-		return fmt.Errorf("create newindex: %w", err)
-	}
-
-	// Blog
-	_, err = r.WriteString("### [Blog](/blog)\n")
-	if err != nil {
-		return fmt.Errorf("blog title: %w", err)
-	}
-	for _, f := range ic.Blog {
-		_, err = r.WriteString("* [" + f.Title + "](/" + f.Path + ")\n")
-		if err != nil {
-			return fmt.Errorf("blog item: %+v, %w", f, err)
-		}
-	}
-
-	// Current
-	_, err = r.WriteString("\n\n### [Current Projects](/projects/current)\n")
-	if err != nil {
-		return fmt.Errorf("current title: %w", err)
-	}
-	for _, f := range ic.Current {
-		_, err = r.WriteString("* [" + f.Title + "](/" + f.Path + ")\n")
-		if err != nil {
-			return fmt.Errorf("current item: %+v, %w", f, err)
-		}
-	}
-
-	// Past
-	_, err = r.WriteString("\n\n### [Past Projects](/projects/past)\n")
-	if err != nil {
-		return fmt.Errorf("past title: %w", err)
-	}
-	for _, f := range ic.Past {
-		_, err = r.WriteString("* [" + f.Title + "](/" + f.Path + ")\n")
-		if err != nil {
-			return fmt.Errorf("past time: %+v, %w", f, err)
-		}
-	}
-
-	// Close file
-	err = r.Close()
-	if err != nil {
-		return fmt.Errorf("index close: %w", err)
-	}
-
-	err = os.Rename("newIndex.md", "index.md")
-	if err != nil {
-		return fmt.Errorf("move index: %w", err)
-	}
-
-	return nil
-}
-
-func (p PageContent)generate() error {
-	r, err := os.Create(p.NewIndex)
-	if err != nil {
-		return fmt.Errorf("create index: %v, %w", p.NewIndex, err)
-	}
-
-	_, err = r.WriteString("### " + p.Title + "\n")
-	if err != nil {
-		return fmt.Errorf("write title: %w", err)
-	}
-
-	for i := 1; i < len(p.Pages); i++ {
-		f := p.Pages[i]
-		path := strings.Replace(f.Path, "md", "html", -1)
-
-		_, err = r.WriteString("* [" + f.Title + "](/" + path + ")\n")
-		if err != nil {
-			return fmt.Errorf("write item: %w", err)
-		}
-	}
-
-	if len(p.Pages) >= 1 {
-		_, err = r.WriteString("\n---\n")
-		if err != nil {
-			return fmt.Errorf("latest title: %w", err)
-		}
-
-		latest, err := getLatest(p.Pages[0])
-		if err != nil {
-			return fmt.Errorf("getLatest: %w", err)
-		}
-
-		_, err = r.WriteString(latest)
-		if err != nil {
-			return fmt.Errorf("write latest: %w", err)
-		}
-	}
-
-//	_, err = r.WriteString("---\n[Home](/)\n")
-//	if err != nil {
-//		return fmt.Errorf("write home link: %w", err)
-//	}
-
-	err = r.Close()
-	if err != nil {
-		return fmt.Errorf("close file: %w", err)
-	}
-
-	err = os.Rename(p.NewIndex, p.Index)
-	if err != nil {
-		return fmt.Errorf("move file: %w", err)
-	}
-
-	return nil
-}
-
-func sortFiles(files []File) []File {
-	ret := []File{}
-
-	for _, f := range files {
-		for _, ff := range files {
-			if ff.Info.ModTime().Unix() >= f.Info.ModTime().Unix() {
-				o := ret
-				t := []File{}
-				t = append(t, ff)
-				for _, x := range o {
-					if x.Path != ff.Path {
-						t = append(t, x)
-					}
-				}
-				ret = t
-			}
-		}
-	}
-
-	return ret
 }
