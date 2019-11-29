@@ -35,6 +35,10 @@ func main() {
 	}
 }
 
+const YES = 121
+const NO = 110
+const QUIT = 113
+
 func _main(args []string) error {
 	root := "./"
 	if len(args) >= 1 {
@@ -47,7 +51,7 @@ func _main(args []string) error {
 
 	fmt.Printf("Create new item y/n ? ")
 	create, err := getResponse('\n')
-	if create[0] == 121 {
+	if create[0] == YES {
 		err := editor(root)
 		if err != nil {
 			return fmt.Errorf("editor err: %w", err)

@@ -151,11 +151,11 @@ func termEditor() (EditorContent, error) {
 	}
 
 	switch save[0] {
-	case 121:
+	case YES:
 		return ec, nil
-	case 113:
+	case QUIT:
 		return EditorContent{}, nil
-	case 110:
+	case NO:
 		return termEditor()
 	}
 
