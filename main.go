@@ -87,10 +87,10 @@ func _main(args []string) error {
 func sortFiles(files []File) []File {
 	for i := len(files); i > 0; i-- {
 		for j := 1; j < i; j++ {
-			if files[j - 1].Info.ModTime().Unix() >= files[j].Info.ModTime().Unix() {
+			if files[j-1].Info.ModTime().Unix() <= files[j].Info.ModTime().Unix() {
 				im := files[j]
-				files[j] = files[j - 1]
-				files[j - 1] = im
+				files[j] = files[j-1]
+				files[j-1] = im
 			}
 		}
 	}
@@ -111,7 +111,7 @@ func getFiles(basePath string) ([]File, error) {
 
 	err = filepath.Walk(root+"/"+basePath, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(info.Name(), ".md") {
-			if info.Name() != "index.md" {
+			if info.Name() != "index.md" && info.Name() != "newIndex.md" {
 				f := File{
 					Path: basePath + "/" + info.Name(),
 					Info: info,
