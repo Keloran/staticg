@@ -99,15 +99,22 @@ func (p PageContent) generate() error {
 			return fmt.Errorf("latest: %w", err)
 		}
 	} else {
-	    _, err = r.WriteString("\n[Home](/)")
-	    if err != nil {
-	        return fmt.Errorf("home link: %w", err)
-        }
-    }
+		_, err = r.WriteString("\n[Home](/)")
+		if err != nil {
+			return fmt.Errorf("home link: %w", err)
+		}
+	}
 
 	err = r.Close()
 	if err != nil {
 		return fmt.Errorf("close file: %w", err)
+	}
+
+	if _, err = os.Stat(p.Index); !os.IsNotExist(err) {
+		err = os.Remove(p.Index)
+		if err != nil {
+			return fmt.Errorf("remove old index: %w", err)
+		}
 	}
 
 	err = os.Rename(p.NewIndex, p.Index)
