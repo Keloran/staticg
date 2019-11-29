@@ -87,7 +87,7 @@ func _main(args []string) error {
 func sortFiles(files []File) []File {
 	for i := len(files); i > 0; i-- {
 		for j := 1; j < i; j++ {
-			if files[j - 1].Info.ModTime().Unix() > files[j].Info.ModTime().Unix() {
+			if files[j - 1].Info.ModTime().Unix() >= files[j].Info.ModTime().Unix() {
 				im := files[j]
 				files[j] = files[j - 1]
 				files[j - 1] = im
