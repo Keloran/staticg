@@ -57,7 +57,7 @@ func editor(root string) error {
 		return fmt.Errorf("content: %w", err)
 	}
 
-	_, err = f.WriteString("---\n")
+	_, err = f.WriteString("---\n\n")
 	if err != nil {
 		return fmt.Errorf("link start: %w", err)
 	}
