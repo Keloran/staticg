@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
+  "math/rand"
+  "os"
 	"path/filepath"
 	"strings"
 )
@@ -89,15 +90,23 @@ func _main(args []string) error {
 }
 
 func sortFiles(files []File) []File {
-	for i := len(files); i > 0; i-- {
-		for j := 1; j < i; j++ {
-			if files[j-1].Info.ModTime().Unix() <= files[j].Info.ModTime().Unix() {
-				im := files[j]
-				files[j] = files[j-1]
-				files[j-1] = im
-			}
-		}
-	}
+  if len(files) < 2 {
+    return files
+  }
+
+  left, right := 0, len(files) - 1
+  pivot := rand.Int() % len(files)
+  files[pivot], files[right] = files[right], files[pivot]
+
+  for i, _ := range files {
+    if files[i].Info.ModTime().Unix() > files[right].Info.ModTime().Unix() {
+      files[left], files[i] = files[i], files[left]
+      left++
+    }
+  }
+  files[left], files[right] = files[right], files[left]
+  sortFiles(files[:left])
+  sortFiles(files[left + 1:])
 
 	return files
 }
