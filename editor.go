@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+  "time"
 )
 
 type EditorLink struct {
@@ -30,6 +31,14 @@ func getResponse(delim byte) ([]byte, error) {
 	return input[0 : len(input)-1], nil
 }
 
+func padTime(t int) string {
+  if t < 10 {
+    return fmt.Sprintf("0%d", t)
+  }
+
+  return fmt.Sprintf("%d", t)
+}
+
 func editor(root string) error {
 	ec, err := termEditor()
 	if err != nil {
@@ -51,6 +60,12 @@ func editor(root string) error {
 	if err != nil {
 		return fmt.Errorf("title: %w", err)
 	}
+
+	t := time.Now()
+	_, err = f.WriteString("#### " + fmt.Sprintf("%d-%s-%s", t.Year(), padTime(int(t.Month())), padTime(t.Day())) + "\n")
+	if err != nil {
+	  return fmt.Errorf("date posted: %w", err)
+  }
 
 	_, err = f.Write(ec.Content)
 	if err != nil {
