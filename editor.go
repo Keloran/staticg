@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-  "time"
+	"time"
 )
 
 type EditorLink struct {
@@ -32,11 +32,11 @@ func getResponse(delim byte) ([]byte, error) {
 }
 
 func padTime(t int) string {
-  if t < 10 {
-    return fmt.Sprintf("0%d", t)
-  }
+	if t < 10 {
+		return fmt.Sprintf("0%d", t)
+	}
 
-  return fmt.Sprintf("%d", t)
+	return fmt.Sprintf("%d", t)
 }
 
 func editor(root string) error {
@@ -64,8 +64,8 @@ func editor(root string) error {
 	t := time.Now()
 	_, err = f.WriteString("#### " + fmt.Sprintf("%d-%s-%s", t.Year(), padTime(int(t.Month())), padTime(t.Day())) + "\n")
 	if err != nil {
-	  return fmt.Errorf("date posted: %w", err)
-  }
+		return fmt.Errorf("date posted: %w", err)
+	}
 
 	_, err = f.Write(ec.Content)
 	if err != nil {

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-  "math/rand"
-  "os"
+	"math/rand"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -85,28 +85,33 @@ func _main(args []string) error {
 		return fmt.Errorf("generate index: %w", err)
 	}
 
+	err = ic.generateFeed()
+	if err != nil {
+		return fmt.Errorf("generate feed: %w", err)
+	}
+
 	fmt.Printf("all files created\n")
 	return nil
 }
 
 func sortFiles(files []File) []File {
-  if len(files) < 2 {
-    return files
-  }
+	if len(files) < 2 {
+		return files
+	}
 
-  left, right := 0, len(files) - 1
-  pivot := rand.Int() % len(files)
-  files[pivot], files[right] = files[right], files[pivot]
+	left, right := 0, len(files)-1
+	pivot := rand.Int() % len(files)
+	files[pivot], files[right] = files[right], files[pivot]
 
-  for i, _ := range files {
-    if files[i].Info.ModTime().Unix() > files[right].Info.ModTime().Unix() {
-      files[left], files[i] = files[i], files[left]
-      left++
-    }
-  }
-  files[left], files[right] = files[right], files[left]
-  sortFiles(files[:left])
-  sortFiles(files[left + 1:])
+	for i, _ := range files {
+		if files[i].Info.ModTime().Unix() > files[right].Info.ModTime().Unix() {
+			files[left], files[i] = files[i], files[left]
+			left++
+		}
+	}
+	files[left], files[right] = files[right], files[left]
+	sortFiles(files[:left])
+	sortFiles(files[left+1:])
 
 	return files
 }
