@@ -9,11 +9,13 @@ import (
 	"time"
 )
 
+// EditorLink ...
 type EditorLink struct {
 	Title []byte
 	Link  []byte
 }
 
+// EditorContent ...
 type EditorContent struct {
 	Blog      bool
 	Title     []byte

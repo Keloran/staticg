@@ -9,18 +9,22 @@ import (
 	"strings"
 )
 
+// File ...
 type File struct {
-	Path  string
-	Info  os.FileInfo
-	Title string
+	Path      string
+	CleanPath string
+	Info      os.FileInfo
+	Title     string
 }
 
+// IndexContent ...
 type IndexContent struct {
 	Blog    []File
 	Current []File
 	Past    []File
 }
 
+// PageContent ...
 type PageContent struct {
 	Title    string
 	NewIndex string
@@ -36,8 +40,13 @@ func main() {
 	}
 }
 
+// YES keycode for y
 const YES = 121
+
+// NO keycode for n
 const NO = 110
+
+// QUIT keycode for q
 const QUIT = 113
 
 func _main(args []string) error {
@@ -50,48 +59,63 @@ func _main(args []string) error {
 
 	ic := IndexContent{}
 
+	errChan := make(chan error)
+	generated := make(chan bool)
+
 	fmt.Printf("Create new item y/n ? ")
 	create, err := getResponse('\n')
 	if create[0] == YES {
 		err := editor(root)
 		if err != nil {
-			return fmt.Errorf("editor err: %w", err)
+			errChan <- fmt.Errorf("editor err: %w", err)
 		}
 	}
 	if err != nil {
-		return fmt.Errorf("item question: %w", err)
+		errChan <- fmt.Errorf("item question: %w", err)
 	}
 
 	pages, err := blogPages(root)
 	if err != nil {
-		return fmt.Errorf("blog err: %w", err)
+		errChan <- fmt.Errorf("blog err: %w", err)
 	}
 	ic.Blog = pages
+	fmt.Printf("blogs gathered\n")
 
 	pages, err = currentProjects(root)
 	if err != nil {
-		return fmt.Errorf("current projects: %w", err)
+		errChan <- fmt.Errorf("current projects: %w", err)
 	}
 	ic.Current = pages
+	fmt.Printf("current projects gathered\n")
 
 	pages, err = pastProjects(root)
 	if err != nil {
-		return fmt.Errorf("past projects: %w", err)
+		errChan <- fmt.Errorf("past projects: %w", err)
 	}
 	ic.Past = pages
+	fmt.Printf("past projects gathered\n")
 
-	err = ic.generate()
-	if err != nil {
-		return fmt.Errorf("generate index: %w", err)
+	go func() {
+		err = ic.generate()
+		if err != nil {
+			errChan <- fmt.Errorf("generate index: %w", err)
+		}
+		fmt.Printf("index pages generated\n")
+
+		err = ic.generateFeed()
+		if err != nil {
+			errChan <- fmt.Errorf("generate feed: %w", err)
+		}
+		fmt.Printf("rss generated\n")
+		generated <- true
+	}()
+
+	select {
+	case err := <-errChan:
+		return fmt.Errorf("main err: %w", err)
+	case <-generated:
+		return nil
 	}
-
-	err = ic.generateFeed()
-	if err != nil {
-		return fmt.Errorf("generate feed: %w", err)
-	}
-
-	fmt.Printf("all files created\n")
-	return nil
 }
 
 func sortFiles(files []File) []File {
@@ -103,7 +127,7 @@ func sortFiles(files []File) []File {
 	pivot := rand.Int() % len(files)
 	files[pivot], files[right] = files[right], files[pivot]
 
-	for i, _ := range files {
+	for i := range files {
 		if files[i].Info.ModTime().Unix() > files[right].Info.ModTime().Unix() {
 			files[left], files[i] = files[i], files[left]
 			left++
@@ -131,8 +155,9 @@ func getFiles(basePath string) ([]File, error) {
 		if strings.Contains(info.Name(), ".md") {
 			if info.Name() != "index.md" && info.Name() != "newIndex.md" {
 				f := File{
-					Path: basePath + "/" + info.Name(),
-					Info: info,
+					Path:      basePath + "/" + info.Name(),
+					CleanPath: "/" + info.Name(),
+					Info:      info,
 				}
 
 				title, err := f.getTitle()

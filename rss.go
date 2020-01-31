@@ -9,23 +9,27 @@ import (
 	"time"
 )
 
+// FeedLink ...
 type FeedLink struct {
 	Href string `xml:"href,attr"`
 	Rel  string `xml:"rel,attr"`
 }
 
-type Category struct {
+// FeedCategory ...
+type FeedCategory struct {
 	Term string `xml:"term,attr"`
 }
 
+// FeedEntry ...
 type FeedEntry struct {
 	ID       string     `xml:"id"`
 	Title    string     `xml:"title"`
 	Updated  time.Time  `xml:"updated"`
 	Link     []FeedLink `xml:"link"`
-	Category Category   `xml:"category"`
+	Category FeedCategory   `xml:"category"`
 }
 
+// FeedAuthor ...
 type FeedAuthor struct {
 	Name string `xml:"name"`
 	URI  string `xml:"uri"`
@@ -94,10 +98,10 @@ func (ic IndexContent) generateFeed() error {
 		return fmt.Errorf("generateFeed closeFile: %w", err)
 	}
 
-  err = os.Rename("newfeed.xml", "feed.xml")
-  if err != nil {
-    return fmt.Errorf("move feed: %w", err)
-  }
+	err = os.Rename("newfeed.xml", "feed.xml")
+	if err != nil {
+		return fmt.Errorf("move feed: %w", err)
+	}
 
 	return nil
 }
@@ -117,7 +121,7 @@ func getItems(items []File, category string) []FeedEntry {
 					Rel:  "alternate",
 				},
 			},
-			Category: Category{
+			Category: FeedCategory{
 				Term: category,
 			},
 		}
@@ -136,7 +140,7 @@ func orderItems(items []FeedEntry) []FeedEntry {
 	pivot := rand.Int() % len(items)
 	items[pivot], items[right] = items[right], items[pivot]
 
-	for i, _ := range items {
+	for i  := range items {
 		if items[i].Updated.Unix() > items[right].Updated.Unix() {
 			items[left], items[i] = items[i], items[left]
 			left++
