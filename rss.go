@@ -117,7 +117,7 @@ func getItems(items []File, category string) []FeedEntry {
 			Updated: item.Info.ModTime(),
 			Link: []FeedLink{
 				{
-					Href: fmt.Sprintf("https://github.com/keloran/keloran.github.io%s", item.Path),
+					Href: fmt.Sprintf("https://github.com/keloran/keloran.github.io/blob/master/%s%s", category, item.CleanPath),
 					Rel:  "alternate",
 				},
 			},
