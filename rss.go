@@ -118,7 +118,7 @@ func getItems(items []File, category string) []FeedEntry {
 		link := strings.Split(item.Path, ".md")
 
 		entry := FeedEntry{
-			ID:      fmt.Sprintf("https://www.keloran.dev/%s", link[0][2:]),
+			ID:      fmt.Sprintf("https://www.keloran.dev/%s.html", link[0][2:]),
 			Title:   item.Title,
 			Updated: item.Info.ModTime(),
 			Link: []FeedLink{
