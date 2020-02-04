@@ -1,24 +1,46 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"strings"
+  "fmt"
+  "os"
+  "strings"
 )
+
+// YES y
+const YES = 121
+
+// NO n
+const NO = 110
+
+// QUIT q
+const QUIT = 113
+
+// CLOSE_KEY ~
+const CLOSE_KEY = 126
+
+// NEWLINE \n
+const NEWLINE = 10
 
 func writeContent(p *os.File, f []File, title, link string) error {
 	if len(f) >= 1 {
-		_, err := p.WriteString(fmt.Sprintf("### [%s](/%s)\n", title, link))
-		if err != nil {
-			return fmt.Errorf("writeContent: %s title: %w", title, err)
-		}
+	  if link != "" {
+      _, err := p.WriteString(fmt.Sprintf("### [%s](%s)\n", title, link))
+      if err != nil {
+        return fmt.Errorf("writeContent: %s title with link: %w", title, err)
+      }
+    } else {
+      _, err := p.WriteString(fmt.Sprintf("### [%s]\n", title))
+      if err != nil {
+        return fmt.Errorf("writeContent %s title without link: %w", title, err)
+      }
+    }
 		for _, f := range f {
-			_, err = p.WriteString(fmt.Sprintf("* [%s](/%s%s)\n", f.Title, link, f.CleanPath))
+			_, err := p.WriteString(fmt.Sprintf("* [%s](%s%s)\n", f.Title, link, f.CleanPath))
 			if err != nil {
 				return fmt.Errorf("writeContent: %s item: %+v, %w", title, f, err)
 			}
 		}
-		_, err = p.WriteString("\n")
+		_, err := p.WriteString("\n")
 		if err != nil {
 			return fmt.Errorf("writeContent closer: %w", err)
 		}
@@ -34,32 +56,35 @@ func (ic IndexContent) generate() error {
 	}
 
 	// Blog
-	err = writeContent(r, ic.Blog, "Blog", "blog")
-	if err != nil {
-		return fmt.Errorf("blog: %w", err)
-	}
+	if fileExists("blog/index.md") {
+    err = writeContent(r, ic.Blog, "Blog", "/blog")
+    if err != nil {
+      return fmt.Errorf("blog: %w", err)
+    }
+  }
 
 	// Current
-	err = writeContent(r, ic.Current, "Current Projects", "projects/current")
-	if err != nil {
-		return fmt.Errorf("current projects: %w", err)
-	}
+	if fileExists("projects/current/index.md") {
+    err = writeContent(r, ic.Current, "Current Projects", "/projects/current")
+    if err != nil {
+      return fmt.Errorf("current projects: %w", err)
+    }
+  }
 
 	// Past
-	err = writeContent(r, ic.Past, "Past Projects", "projects/past")
-	if err != nil {
-		return fmt.Errorf("past projects: %w", err)
-	}
+	if fileExists("projects/past/index.md") {
+    err = writeContent(r, ic.Past, "Past Projects", "/projects/past")
+    if err != nil {
+      return fmt.Errorf("past projects: %w", err)
+    }
+  }
 
-	// Feed
-	_, err = r.WriteString("---\n#### Feed\n")
-	if err != nil {
-		return fmt.Errorf("feed title: %w", err)
-	}
-	_, err = r.WriteString("[Link](./feed.xml)\n")
-	if err != nil {
-		return fmt.Errorf("feed link: %w", err)
-	}
+  if len(ic.Other) >= 1{
+    err = writeContent(r, ic.Other, "Other Links", "")
+    if err != nil {
+      return fmt.Errorf("other links: %w", err)
+    }
+  }
 
 	// Close file
 	err = r.Close()
@@ -81,16 +106,17 @@ func (p PageContent) generate() error {
 		return fmt.Errorf("create index: %v, %w", p.NewIndex, err)
 	}
 
-	_, err = r.WriteString("### " + p.Title + "\n")
+	_, err = r.WriteString(fmt.Sprintf("### %s\n",  p.Title))
 	if err != nil {
 		return fmt.Errorf("write title: %w", err)
 	}
 
 	for i := 1; i < len(p.Pages); i++ {
 		f := p.Pages[i]
-		path := strings.Replace(f.Path, "md", "html", -1)
+		path := strings.Replace(f.CleanPath, "md", "html", -1)
+		path = strings.Replace(path, "./", "", -1)
 
-		_, err = r.WriteString("* [" + f.Title + "](/" + path + ")\n")
+		_, err = r.WriteString(fmt.Sprintf("* [%s](%s%s)\n", f.Title, p.Path, path))
 		if err != nil {
 			return fmt.Errorf("write item: %w", err)
 		}
@@ -102,9 +128,9 @@ func (p PageContent) generate() error {
 			return fmt.Errorf("latest title: %w", err)
 		}
 
-		latest, err := getLatest(p.Pages[0])
+		latest, err := getFileContent(p.Pages[0])
 		if err != nil {
-			return fmt.Errorf("getLatest: %w", err)
+			return fmt.Errorf("getFileContent: %w", err)
 		}
 
 		_, err = r.WriteString(latest)
@@ -123,12 +149,12 @@ func (p PageContent) generate() error {
 		return fmt.Errorf("close file: %w", err)
 	}
 
-	if _, err = os.Stat(p.Index); !os.IsNotExist(err) {
-		err = os.Remove(p.Index)
-		if err != nil {
-			return fmt.Errorf("remove old index: %w", err)
-		}
-	}
+	if fileExists(p.Index) {
+    err = os.Remove(p.Index)
+    if err != nil {
+      return fmt.Errorf("remove old index: %w", err)
+    }
+  }
 
 	err = os.Rename(p.NewIndex, p.Index)
 	if err != nil {

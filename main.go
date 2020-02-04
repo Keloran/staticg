@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/go-yaml/yaml"
 )
 
 // File ...
@@ -22,6 +24,7 @@ type IndexContent struct {
 	Blog    []File
 	Current []File
 	Past    []File
+	Other   []File
 }
 
 // PageContent ...
@@ -29,6 +32,7 @@ type PageContent struct {
 	Title    string
 	NewIndex string
 	Index    string
+	Path     string
 	Pages    []File
 }
 
@@ -39,15 +43,6 @@ func main() {
 		return
 	}
 }
-
-// YES keycode for y
-const YES = 121
-
-// NO keycode for n
-const NO = 110
-
-// QUIT keycode for q
-const QUIT = 113
 
 func _main(args []string) error {
 	root := "./"
@@ -63,7 +58,7 @@ func _main(args []string) error {
 	generated := make(chan bool)
 
 	fmt.Printf("Create new item y/n ? ")
-	create, err := getResponse('\n')
+	create, err := getResponse(NEWLINE)
 	if create[0] == YES {
 		err := editor(root)
 		if err != nil {
@@ -94,6 +89,13 @@ func _main(args []string) error {
 	}
 	ic.Past = pages
 	fmt.Printf("past projects gathered\n")
+
+	pages, err = getOthers()
+	if err != nil {
+	  errChan <- fmt.Errorf("others: %w", err)
+  }
+  ic.Other = pages
+  fmt.Printf("other links\n")
 
 	go func() {
 		err = ic.generate()
@@ -145,7 +147,7 @@ func getFiles(basePath string) ([]File, error) {
 
 	root, err := os.Getwd()
 	if err != nil {
-		return files, fmt.Errorf("getwd: %w", err)
+		return files, fmt.Errorf("getFiles getwd: %w", err)
 	}
 	if _, err = os.Stat(root + "/" + basePath); os.IsNotExist(err) {
 		return files, fmt.Errorf("%s folder doesn't exist", basePath)
@@ -155,14 +157,14 @@ func getFiles(basePath string) ([]File, error) {
 		if strings.Contains(info.Name(), ".md") {
 			if info.Name() != "index.md" && info.Name() != "newIndex.md" {
 				f := File{
-					Path:      basePath + "/" + info.Name(),
-					CleanPath: "/" + info.Name(),
+					Path:      fmt.Sprintf("%s/%s", basePath, info.Name()),
+					CleanPath: fmt.Sprintf("/%s", info.Name()),
 					Info:      info,
 				}
 
 				title, err := f.getTitle()
 				if err != nil {
-					return fmt.Errorf("getTitle: %w", err)
+					return fmt.Errorf("getFiles getTitle: %w", err)
 				}
 				f.Title = title
 
@@ -178,7 +180,7 @@ func getFiles(basePath string) ([]File, error) {
 	return sortFiles(files), nil
 }
 
-func getLatest(f File) (string, error) {
+func getFileContent(f File) (string, error) {
 	dat, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return "", fmt.Errorf("readfile: %w", err)
@@ -190,7 +192,7 @@ func getLatest(f File) (string, error) {
 func (f File) getTitle() (string, error) {
 	dat, err := ioutil.ReadFile(f.Path)
 	if err != nil {
-		return "", fmt.Errorf("readfile: %w", err)
+		return "", fmt.Errorf("getTitle readfile: %w", err)
 	}
 
 	hashBytes := []byte{35, 32}
@@ -215,8 +217,71 @@ func (f File) getTitle() (string, error) {
 	}
 
 	if endByte == 0 {
-		return "", fmt.Errorf("cant find end of title")
+		return "", fmt.Errorf("getTitle cant find end of title")
 	}
 
 	return string(dat[startByte:endByte]), nil
+}
+
+func fileExists(fn string) bool {
+  info, err := os.Stat(fn)
+  if os.IsNotExist(err) {
+    return false
+  }
+
+  return !info.IsDir()
+}
+
+func getCV() (string, error) {
+  type configStruct struct {
+    CV string `yaml:"cv"`
+  }
+
+  if !fileExists("_config.yml") {
+    return "", fmt.Errorf("no config")
+  }
+
+  f := File{
+    Path:      "_config.yml",
+  }
+
+  cs := configStruct{}
+  content, err := getFileContent(f)
+  if err != nil {
+    return "", fmt.Errorf("getCV content: %w", err)
+  }
+
+  err = yaml.Unmarshal([]byte(content), &cs)
+  if err != nil {
+    return "", fmt.Errorf("getCV unmarshall: %w", err)
+  }
+
+  return cs.CV, nil
+}
+
+func getOthers() ([]File, error) {
+  others := []File{}
+  // Feed
+  if fileExists("feed.xml") {
+    o := File{
+      Title: "RSS Feed",
+      CleanPath: "/feed.xml",
+    }
+    others = append(others, o)
+  }
+
+  // CV
+  cv, err := getCV()
+  if err != nil {
+    return others, fmt.Errorf("getOthers cv: %w", err)
+  }
+  if cv != "" {
+    o := File{
+      CleanPath: cv,
+      Title:     "CV",
+    }
+    others = append(others, o)
+  }
+
+  return others, nil
 }

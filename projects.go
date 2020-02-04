@@ -14,6 +14,7 @@ func currentProjects(root string) ([]File, error) {
 		Title:    "Current Projects",
 		NewIndex: root + "projects/current/newIndex.md",
 		Index:    root + "projects/current/index.md",
+		Path:     "/projects/current",
 		Pages:    files,
 	}
 	err = p.generate()
@@ -38,6 +39,7 @@ func pastProjects(root string) ([]File, error) {
 		Title:    "Past Projects",
 		NewIndex: root + "projects/past/newIndex.md",
 		Index:    root + "projects/past/index.md",
+		Path:     "/projects/past",
 		Pages:    files,
 	}
 	err = p.generate()

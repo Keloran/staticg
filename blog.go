@@ -14,6 +14,7 @@ func blogPages(root string) ([]File, error) {
 		Title:    "Blog",
 		NewIndex: root + "blog/newIndex.md",
 		Index:    root + "blog/index.md",
+		Path:     "/blog",
 		Pages:    files,
 	}
 	err = p.generate()

@@ -103,7 +103,7 @@ func termEditor() (EditorContent, error) {
 	ec := EditorContent{}
 
 	fmt.Printf("Project or Blog q/b ? ")
-	t, err := getResponse('\n')
+	t, err := getResponse(NEWLINE)
 	if err != nil {
 		return ec, fmt.Errorf("question err: %w", err)
 	}
@@ -117,21 +117,21 @@ func termEditor() (EditorContent, error) {
 	}
 
 	fmt.Printf("Title: ")
-	title, err := getResponse('\n')
+	title, err := getResponse(NEWLINE)
 	if err != nil {
 		return ec, fmt.Errorf("title: %w", err)
 	}
 	ec.Title = title
 
 	fmt.Printf("Content (tilde to quit): ")
-	content, err := getResponse('~')
+	content, err := getResponse(CLOSE_KEY)
 	if err != nil {
 		return ec, fmt.Errorf("content: %w", err)
 	}
 	ec.Content = content
 
 	fmt.Printf("How many links: ")
-	linkCount, err := getResponse('\n')
+	linkCount, err := getResponse(NEWLINE)
 	if err != nil {
 		return ec, fmt.Errorf("link count: %w", err)
 	}
@@ -144,14 +144,14 @@ func termEditor() (EditorContent, error) {
 		el := EditorLink{}
 
 		fmt.Printf("Link Title: ")
-		t, err := getResponse('\n')
+		t, err := getResponse(NEWLINE)
 		if err != nil {
 			return ec, fmt.Errorf("editor link title: %w", err)
 		}
 		el.Title = t
 
 		fmt.Printf("Link: ")
-		l, err := getResponse('\n')
+		l, err := getResponse(NEWLINE)
 		if err != nil {
 			return ec, fmt.Errorf("editor link link: %w", err)
 		}
@@ -162,7 +162,7 @@ func termEditor() (EditorContent, error) {
 	ec.PageLinks = els
 
 	fmt.Printf("\nSave y/n/q ? ")
-	save, err := getResponse('\n')
+	save, err := getResponse(NEWLINE)
 	if err != nil {
 		return ec, fmt.Errorf("save: %w", err)
 	}

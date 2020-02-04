@@ -98,6 +98,12 @@ func (ic IndexContent) generateFeed() error {
 		return fmt.Errorf("generateFeed closeFile: %w", err)
 	}
 
+	if fileExists("feed.xml") {
+	  err = os.Remove("feed.xml")
+	  if err != nil {
+	    return fmt.Errorf("remove feedxml: %w", err)
+    }
+  }
 	err = os.Rename("newfeed.xml", "feed.xml")
 	if err != nil {
 		return fmt.Errorf("move feed: %w", err)
