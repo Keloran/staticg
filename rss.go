@@ -160,10 +160,7 @@ func orderItems(items []FeedEntry) []FeedEntry {
 }
 
 func flatternAndOrder(flat []FeedEntry, items []FeedEntry) []FeedEntry {
-	for _, item := range items {
-		flat = append(flat, item)
-	}
-
+	flat = append(flat, items...)
 	flat = orderItems(flat)
 
 	return flat

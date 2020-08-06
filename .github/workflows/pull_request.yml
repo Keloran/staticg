@@ -23,7 +23,7 @@ jobs:
           version: v1.29
   auto-merge:
     needs: lint
-    runs-on: ubuntu-latest:
+    runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
       - uses: ahmadnassri/actions/dependabot-auto-merge@v1
