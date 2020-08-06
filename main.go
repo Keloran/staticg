@@ -92,10 +92,10 @@ func _main(args []string) error {
 
 	pages, err = getOthers()
 	if err != nil {
-	  errChan <- fmt.Errorf("others: %w", err)
-  }
-  ic.Other = pages
-  fmt.Printf("other links\n")
+		errChan <- fmt.Errorf("others: %w", err)
+	}
+	ic.Other = pages
+	fmt.Printf("other links\n")
 
 	go func() {
 		err = ic.generate()
@@ -224,64 +224,64 @@ func (f File) getTitle() (string, error) {
 }
 
 func fileExists(fn string) bool {
-  info, err := os.Stat(fn)
-  if os.IsNotExist(err) {
-    return false
-  }
+	info, err := os.Stat(fn)
+	if os.IsNotExist(err) {
+		return false
+	}
 
-  return !info.IsDir()
+	return !info.IsDir()
 }
 
 func getCV() (string, error) {
-  type configStruct struct {
-    CV string `yaml:"cv"`
-  }
+	type configStruct struct {
+		CV string `yaml:"cv"`
+	}
 
-  if !fileExists("_config.yml") {
-    return "", fmt.Errorf("no config")
-  }
+	if !fileExists("_config.yml") {
+		return "", fmt.Errorf("no config")
+	}
 
-  f := File{
-    Path:      "_config.yml",
-  }
+	f := File{
+		Path: "_config.yml",
+	}
 
-  cs := configStruct{}
-  content, err := getFileContent(f)
-  if err != nil {
-    return "", fmt.Errorf("getCV content: %w", err)
-  }
+	cs := configStruct{}
+	content, err := getFileContent(f)
+	if err != nil {
+		return "", fmt.Errorf("getCV content: %w", err)
+	}
 
-  err = yaml.Unmarshal([]byte(content), &cs)
-  if err != nil {
-    return "", fmt.Errorf("getCV unmarshall: %w", err)
-  }
+	err = yaml.Unmarshal([]byte(content), &cs)
+	if err != nil {
+		return "", fmt.Errorf("getCV unmarshall: %w", err)
+	}
 
-  return cs.CV, nil
+	return cs.CV, nil
 }
 
 func getOthers() ([]File, error) {
-  others := []File{}
-  // Feed
-  if fileExists("feed.xml") {
-    o := File{
-      Title: "RSS Feed",
-      CleanPath: "/feed.xml",
-    }
-    others = append(others, o)
-  }
+	others := []File{}
+	// Feed
+	if fileExists("feed.xml") {
+		o := File{
+			Title:     "RSS Feed",
+			CleanPath: "/feed.xml",
+		}
+		others = append(others, o)
+	}
 
-  // CV
-  cv, err := getCV()
-  if err != nil {
-    return others, fmt.Errorf("getOthers cv: %w", err)
-  }
-  if cv != "" {
-    o := File{
-      CleanPath: cv,
-      Title:     "CV",
-    }
-    others = append(others, o)
-  }
+	// CV
+	cv, err := getCV()
+	if err != nil {
+		return others, fmt.Errorf("getOthers cv: %w", err)
+	}
+	if cv != "" {
+		o := File{
+			CleanPath: cv,
+			Title:     "CV",
+		}
+		others = append(others, o)
+	}
 
-  return others, nil
+	return others, nil
 }
