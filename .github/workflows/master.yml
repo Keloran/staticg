@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.date.outputs.date }}
-          release_name: ${{ steps.date.output.date }} Build
+          release_name: ${{ steps.date.outputs.date }} Build
       - name: Upload Linux
         uses: actions/upload-release-asset@v1
         env:
