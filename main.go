@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"os"
+  "fmt"
+  "os"
   "sync"
 
   "github.com/keloran/staticg/generate"
