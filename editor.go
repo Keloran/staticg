@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+// YES y
+const YES = 121
+
+// NO n
+const NO = 110
+
+// QUIT q
+const QUIT = 113
+
+// CLOSE_KEY ~
+const CLOSE_KEY = 126
+
+// NEWLINE \n
+const NEWLINE = 10
+
 // EditorLink ...
 type EditorLink struct {
 	Title []byte

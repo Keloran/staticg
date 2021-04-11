@@ -1,4 +1,4 @@
-package main
+package generate
 
 import (
   "fmt"
@@ -6,20 +6,22 @@ import (
   "strings"
 )
 
-// YES y
-const YES = 121
+// IndexContent ...
+type IndexContent struct {
+  Blog    []File
+  Current []File
+  Past    []File
+  Other   []File
+}
 
-// NO n
-const NO = 110
-
-// QUIT q
-const QUIT = 113
-
-// CLOSE_KEY ~
-const CLOSE_KEY = 126
-
-// NEWLINE \n
-const NEWLINE = 10
+// PageContent ...
+type PageContent struct {
+  Title    string
+  NewIndex string
+  Index    string
+  Path     string
+  Pages    []File
+}
 
 func writeContent(p *os.File, f []File, title, link string) error {
 	if len(f) >= 1 {
@@ -49,7 +51,7 @@ func writeContent(p *os.File, f []File, title, link string) error {
 	return nil
 }
 
-func (ic IndexContent) generate() error {
+func (ic IndexContent) Generate() error {
 	r, err := os.Create("newIndex.md")
 	if err != nil {
 		return fmt.Errorf("create newindex: %w", err)
@@ -100,7 +102,7 @@ func (ic IndexContent) generate() error {
 	return nil
 }
 
-func (p PageContent) generate() error {
+func (p PageContent) Generate() error {
 	r, err := os.Create(p.NewIndex)
 	if err != nil {
 		return fmt.Errorf("create index: %v, %w", p.NewIndex, err)

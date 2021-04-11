@@ -1,4 +1,4 @@
-package main
+package generate
 
 import (
 	"encoding/xml"
@@ -45,7 +45,11 @@ type feed struct {
 	Entry   []FeedEntry `xml:"entry"`
 }
 
-func (ic IndexContent) generateFeed() error {
+func (ic IndexContent) GenerateFeed() error {
+  if len(ic.Current) < 1 {
+    return nil
+  }
+
 	r, err := os.Create("newfeed.xml")
 	if err != nil {
 		return fmt.Errorf("generateFeed create newfeed: %w", err)

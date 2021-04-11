@@ -1,11 +1,11 @@
-package main
+package generate
 
 import (
 	"fmt"
 )
 
-func blogPages(root string) ([]File, error) {
-	files, err := getFiles(root + "blog")
+func BlogPages(root string) ([]File, error) {
+	files, err := GetFiles(root + "blog")
 	if err != nil {
 		return []File{}, fmt.Errorf("getFiles: %w", err)
 	}
@@ -17,7 +17,7 @@ func blogPages(root string) ([]File, error) {
 		Path:     "/blog",
 		Pages:    files,
 	}
-	err = p.generate()
+	err = p.Generate()
 	if err != nil {
 		return files, fmt.Errorf("generate template: %w", err)
 	}

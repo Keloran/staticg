@@ -1,11 +1,11 @@
-package main
+package generate
 
 import (
 	"fmt"
 )
 
-func currentProjects(root string) ([]File, error) {
-	files, err := getFiles(root + "projects/current")
+func CurrentProjects(root string) ([]File, error) {
+	files, err := GetFiles(root + "projects/current")
 	if err != nil {
 		return []File{}, fmt.Errorf("getFiles: %w", err)
 	}
@@ -17,7 +17,7 @@ func currentProjects(root string) ([]File, error) {
 		Path:     "/projects/current",
 		Pages:    files,
 	}
-	err = p.generate()
+	err = p.Generate()
 	if err != nil {
 		return files, fmt.Errorf("generate template: %w", err)
 	}
@@ -29,8 +29,8 @@ func currentProjects(root string) ([]File, error) {
 	return files, nil
 }
 
-func pastProjects(root string) ([]File, error) {
-	files, err := getFiles(root + "projects/past")
+func PastProjects(root string) ([]File, error) {
+	files, err := GetFiles(root + "projects/past")
 	if err != nil {
 		return []File{}, fmt.Errorf("getFiles: %w", err)
 	}
@@ -42,7 +42,7 @@ func pastProjects(root string) ([]File, error) {
 		Path:     "/projects/past",
 		Pages:    files,
 	}
-	err = p.generate()
+	err = p.Generate()
 	if err != nil {
 		return files, fmt.Errorf("generate template: %w", err)
 	}
