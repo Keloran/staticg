@@ -1,0 +1,14 @@
+name: Branch
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: golangci/golangci-lint-action@v1.2.1
+        with:
+          version: v1.29
