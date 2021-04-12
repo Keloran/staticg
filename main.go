@@ -72,7 +72,7 @@ func _main(args []string) error {
 	waitGroup.Wait()
 	for err := range errChan {
 	  if err != nil {
-	    return fmt.Errorf("main err: %w")
+	    return fmt.Errorf("main err: %w", err)
     }
   }
 
