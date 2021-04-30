@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.14.x
+          go-version: 1.16.x
       - name: Get Date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
