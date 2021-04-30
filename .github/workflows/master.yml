@@ -11,17 +11,21 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-  release:
+  update_release_draft:
     needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build_app:
+    needs: update_release_draft
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
           go-version: 1.16.x
-      - name: Get Date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Build
         run: |
           go get ./...
@@ -30,29 +34,33 @@ jobs:
           rm staticg
           GOARCH=amd64 GOOS=darwin go build -o staticg
           zip --junk-paths macos-intel-staticg staticg
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.date.outputs.date }}
-          release_name: ${{ steps.date.outputs.date }} Build
+          rm staticg
+          GOARCH=arm64 GOOS=darwin go build -o staticg
+          zip --junk-paths macos-silicon-staticg staticg
       - name: Upload Linux
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.update_release_draft.outputs.upload_url }}
           asset_path: ./linux-staticg.zip
           asset_name: linux-staticg.zip
           asset_content_type: application/zip
       - name: Upload macOS Intel
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.update_release_draft.outputs.upload_url }}
           asset_path: ./macos-intel-staticg.zip
           asset_name: macos-intel-staticg.zip
+          asset_content_type: application/zip
+      - name: Upload macOS Silicon
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.update_release_draft.outputs.upload_url }}
+          asset_path: ./macos-silicon-staticg.zip
+          asset_name: macos-silicon-staticg.zip
           asset_content_type: application/zip
