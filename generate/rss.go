@@ -46,9 +46,9 @@ type feed struct {
 }
 
 func (ic IndexContent) GenerateFeed() error {
-  if len(ic.Current) < 1 {
-    return nil
-  }
+	if len(ic.Current) < 1 {
+		return nil
+	}
 
 	r, err := os.Create("newfeed.xml")
 	if err != nil {

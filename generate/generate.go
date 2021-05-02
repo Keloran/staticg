@@ -8,19 +8,19 @@ import (
 
 // IndexContent ...
 type IndexContent struct {
-  Blog    []File
-  Current []File
-  Past    []File
-  Other   []File
+	Blog    []File
+	Current []File
+	Past    []File
+	Other   []File
 }
 
 // PageContent ...
 type PageContent struct {
-  Title    string
-  NewIndex string
-  Index    string
-  Path     string
-  Pages    []File
+	Title    string
+	NewIndex string
+	Index    string
+	Path     string
+	Pages    []File
 }
 
 func writeContent(p *os.File, f []File, title, link string) error {
