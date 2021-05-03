@@ -44,8 +44,8 @@ func _main(args []string) error {
 	}()
 
 	fmt.Printf("Create new item y/n ? ")
-	create, err := getResponse(NEWLINE)
-	if create[0] == YES {
+	create, err := getResponse(NewLine)
+	if create[0] == Yes {
 		if err := editor(root); err != nil {
 			errChan <- fmt.Errorf("editor err: %w", err)
 		}

@@ -1,9 +1,10 @@
 package generate
 
 import (
+	"crypto/rand"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,11 @@ func sortFiles(files []File) []File {
 	}
 
 	left, right := 0, len(files)-1
-	pivot := rand.Int() % len(files)
+	r, err := rand.Int(rand.Reader, big.NewInt(9999))
+	if err != nil {
+		return files
+	}
+	pivot := r.Int64() % int64(len(files))
 	files[pivot], files[right] = files[right], files[pivot]
 
 	for i := range files {

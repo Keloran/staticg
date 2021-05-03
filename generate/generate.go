@@ -115,8 +115,8 @@ func (p PageContent) Generate() error {
 
 	for i := 1; i < len(p.Pages); i++ {
 		f := p.Pages[i]
-		path := strings.Replace(f.CleanPath, "md", "html", -1)
-		path = strings.Replace(path, "./", "", -1)
+		path := strings.ReplaceAll(f.CleanPath, "md", "html")
+		path = strings.ReplaceAll(path, "./", "")
 
 		_, err = r.WriteString(fmt.Sprintf("* [%s](%s%s)\n", f.Title, p.Path, path))
 		if err != nil {
