@@ -9,10 +9,16 @@ import (
 )
 
 func main() {
-  if err := gui.StartGUI(); err != nil {
-    fmt.Printf("failed to start GUI: %v\n", err)
-    return
-  }
+	g, err := gui.CreateGUI()
+	if err != nil {
+		fmt.Printf("failed to create GUI: %v\n", err)
+		return
+	}
+
+	if err := gui.StartGUI(g); err != nil {
+		fmt.Printf("failed to start GUI: %v\n", err)
+		return
+	}
 
 	// err = _main(os.Args[1:])
 	// if err != nil {

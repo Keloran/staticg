@@ -6,65 +6,105 @@ import (
 	"github.com/jroimartin/gocui"
 )
 
-func StartGUI() error {
-  g, err := gocui.NewGui(gocui.OutputNormal)
-  if err != nil {
-    return fmt.Errorf("failed to create window: %w", err)
-  }
-  defer g.Close()
+func CreateGUI() (*gocui.Gui, error) {
+	g, err := gocui.NewGui(gocui.OutputNormal)
+	if err != nil {
+		return g, fmt.Errorf("failed to create window: %w", err)
+	}
 
-  g.Cursor = true
-  g.Mouse = true
+	g.Cursor = true
+	g.Mouse = true
 
-  g.SetManagerFunc(layout)
-  if err := BindKeys(g); err != nil {
-    return fmt.Errorf("failed to bind keys: %w", err)
-  }
+	g.SetManagerFunc(layout)
+	if err := BindKeys(g); err != nil {
+		return g, fmt.Errorf("failed to bind keys: %w", err)
+	}
 
-  if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-    return fmt.Errorf("failed to start main loop: %w", err)
-  }
-
-  return nil
+	return g, nil
 }
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
 
-	if _, err := g.SetView("side", -1, -1, int(0.2 * float32(maxX)), maxY - 5); err != nil && err != gocui.ErrUnknownView {
-		return fmt.Errorf("failed to create side: %w", err)
+	if v, err := g.SetView("help", -1, -1, 50, maxY - 5); err != nil {
+	  if err != gocui.ErrUnknownView {
+	    return fmt.Errorf("failed to create help view: %w", err)
+    }
+    if err := drawHelp(v); err != nil {
+      return fmt.Errorf("failed to update help view: %w", err)
+    }
+  }
+
+	if v, err := g.SetView("commands", -1, maxY - 5, 50, maxY); err != nil {
+	  if err != gocui.ErrUnknownView {
+      return fmt.Errorf("failed to create commands view: %w", err)
+    }
+
+    if err := drawCommands(v); err != nil {
+      return fmt.Errorf("failed to update commands view: %w", err)
+    }
 	}
 
-	if _, err := g.SetView("editor", int(0.2 * float32(maxX)), -1, maxX, maxY - 5); err != nil && err != gocui.ErrUnknownView {
-		return fmt.Errorf("failed to create editor: %w", err)
-	}
+	if v, err := g.SetView("editor", 50, -1, maxX, maxY); err != nil {
+	  if err != gocui.ErrUnknownView {
+      return fmt.Errorf("failed to create editor: %w", err)
+    }
 
-	if _, err := g.SetView("cmd", -1, maxY-5, maxX, maxX); err != nil && err != gocui.ErrUnknownView {
-		return fmt.Errorf("failed to create cmd: %w", err)
-	}
+    v.Editable = true
+    v.Wrap = true
+    if _, err := g.SetCurrentView("editor"); err != nil {
+      return fmt.Errorf("failed to set editor as current view: %w", err)
+    }
+  }
 
-	// if v, err := g.SetView("but1", 2, 2, 22, 7); err != nil {
-	// 	if err != gocui.ErrUnknownView {
-	// 		return fmt.Errorf("failed to set view but1: %w", err)
-	// 	}
-	// 	v.Highlight = true
-	// 	v.SelBgColor = gocui.ColorGreen
-	// 	v.SelFgColor = gocui.ColorBlack
-	// 	_, _ = fmt.Fprintln(v, "Button 1 - line 1")
-	// 	_, _ = fmt.Fprintln(v, "Button 1 - line 2")
-	// 	_, _ = fmt.Fprintln(v, "Button 1 - line 3")
-	// 	_, _ = fmt.Fprintln(v, "Button 1 - line 4")
-	// }
-  //
-	// if v, err := g.SetView("but2", 24, 2, 44, 4); err != nil {
-	// 	if err != gocui.ErrUnknownView {
-	// 		return fmt.Errorf("failed to set but2 view: %w", err)
-	// 	}
-	// 	v.Highlight = true
-	// 	v.SelBgColor = gocui.ColorGreen
-	// 	v.SelFgColor = gocui.ColorBlack
-	// 	_, _ = fmt.Fprintln(v, "Button 2 - line 1")
-	// }
+	return nil
+}
+
+func drawCommands(v *gocui.View) error {
+	if _, err := fmt.Fprintln(v, "Quit: ^q"); err != nil {
+	  return fmt.Errorf("failed to write quit to commands buffer: %w", err)
+  }
+	if _, err := fmt.Fprintln(v, "Preview: ^p"); err != nil {
+    return fmt.Errorf("failed to write preview to commands  buffer: %w", err)
+  }
+	if _, err := fmt.Fprintln(v, "Save: ^s"); err != nil {
+    return fmt.Errorf("failed to write save to commands buffer: %w", err)
+  }
+
+	return nil
+}
+
+func drawHelp(v *gocui.View) error {
+  if _, err := fmt.Fprintf(v, "# Heading\n\n"); err != nil {
+    return fmt.Errorf("failed to write headings to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "* List\n\n"); err != nil {
+    return fmt.Errorf("failed to write list to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "[text](link) Link\n\n"); err != nil {
+    return fmt.Errorf("failed to write links to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "![alt](url) Image\n\n"); err != nil {
+    return fmt.Errorf("failed to write image to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "```<language>\ncode```\n\n"); err != nil {
+    return fmt.Errorf("failed to write code to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "--- Line\n\n"); err != nil {
+    return fmt.Errorf("failed to write line to help buffer: %w", err)
+  }
+  if _, err := fmt.Fprintf(v, "[![alt](image)](video link) Video\n\n"); err != nil {
+    return fmt.Errorf("failed to write video to help buffer: %w", err)
+  }
+
+  return nil
+}
+
+func StartGUI(g *gocui.Gui) error {
+  defer g.Close()
+	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+		return fmt.Errorf("failed to start main loop: %w", err)
+	}
 
 	return nil
 }
