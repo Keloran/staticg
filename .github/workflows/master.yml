@@ -11,15 +11,9 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-  update_release_draft:
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          args: --config configs/golangci.yml
   build_app:
-    needs: update_release_draft
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -37,6 +31,11 @@ jobs:
           rm staticg
           GOARCH=arm64 GOOS=darwin go build -o staticg
           zip --junk-paths macos-silicon-staticg staticg
+      - name: Update Release
+        id: update_release_draft
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Linux
         uses: softprops/action-gh-release@v1
         env:

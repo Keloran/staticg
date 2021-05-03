@@ -8,19 +8,19 @@ import (
 
 // IndexContent ...
 type IndexContent struct {
-  Blog    []File
-  Current []File
-  Past    []File
-  Other   []File
+	Blog    []File
+	Current []File
+	Past    []File
+	Other   []File
 }
 
 // PageContent ...
 type PageContent struct {
-  Title    string
-  NewIndex string
-  Index    string
-  Path     string
-  Pages    []File
+	Title    string
+	NewIndex string
+	Index    string
+	Path     string
+	Pages    []File
 }
 
 func writeContent(p *os.File, f []File, title, link string) error {
@@ -115,8 +115,8 @@ func (p PageContent) Generate() error {
 
 	for i := 1; i < len(p.Pages); i++ {
 		f := p.Pages[i]
-		path := strings.Replace(f.CleanPath, "md", "html", -1)
-		path = strings.Replace(path, "./", "", -1)
+		path := strings.ReplaceAll(f.CleanPath, "md", "html")
+		path = strings.ReplaceAll(path, "./", "")
 
 		_, err = r.WriteString(fmt.Sprintf("* [%s](%s%s)\n", f.Title, p.Path, path))
 		if err != nil {

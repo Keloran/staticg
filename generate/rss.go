@@ -1,9 +1,10 @@
 package generate
 
 import (
+	"crypto/rand"
 	"encoding/xml"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -46,9 +47,9 @@ type feed struct {
 }
 
 func (ic IndexContent) GenerateFeed() error {
-  if len(ic.Current) < 1 {
-    return nil
-  }
+	if len(ic.Current) < 1 {
+		return nil
+	}
 
 	r, err := os.Create("newfeed.xml")
 	if err != nil {
@@ -147,7 +148,11 @@ func orderItems(items []FeedEntry) []FeedEntry {
 	}
 
 	left, right := 0, len(items)-1
-	pivot := rand.Int() % len(items)
+	r, err := rand.Int(rand.Reader, big.NewInt(9999))
+	if err != nil {
+		return items
+	}
+	pivot := r.Int64() % int64(len(items))
 	items[pivot], items[right] = items[right], items[pivot]
 
 	for i := range items {
